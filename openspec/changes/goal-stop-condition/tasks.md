@@ -1,7 +1,7 @@
-- [ ] Phase 0: Create `packages/opencode/src/session/goal.ts` with Goal type, Verdict schema, Event definition, Judge prompts, and MAX_GOAL_REACT constant
-- [ ] Phase 1: Add Goal.Service with set, get, clear, bumpReact, evaluate operations using InstanceState + EventV2Bridge + Provider
-- [ ] Phase 2: Register `/goal` command in `packages/opencode/src/command/index.ts` (add Default.GOAL + command dispatch)
-- [ ] Phase 3: Add goalGate to `packages/opencode/src/session/prompt.ts` run loop (integrate at outcome==="break" point)
+- [x] Phase 0: Create `packages/opencode/src/session/goal.ts` with Goal type, Verdict schema, Event definition, Judge prompts, and MAX_GOAL_REACT constant
+- [x] Phase 1: Add Goal.Service with set, get, clear, bumpReact, evaluate operations using InstanceState + EventV2Bridge + Provider
+- [x] Phase 2: Register `/goal` command in `packages/opencode/src/command/index.ts` (add Default.GOAL + command dispatch)
+- [x] Phase 3: Add goalGate to `packages/opencode/src/session/prompt.ts` run loop (integrate at outcome==="break" point)
 - [ ] Phase 4: TUI goal indicator and verdict markers in `packages/tui/src/`
 - [ ] Phase 5: Edge cases — clear idempotency, cancel cleanup, compaction/subtask isolation
 - [ ] Phase 6: Unit tests for Goal.Service, integration tests for goalGate, e2e tests for /goal command
