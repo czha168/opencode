@@ -1382,10 +1382,19 @@ export const layer = Layer.effect(
           )
           if (outcome === "break") {
             const activeGoal = yield* goal.get(sessionID)
-            if (activeGoal && lastUser.agent === "main") {
+            if (activeGoal && agent.mode !== "subagent") {
               const verdict = yield* goal
                 .evaluate({ condition: activeGoal.condition, msgs, model })
-                .pipe(Effect.catch(() => Effect.succeed<SessionGoal.Verdict>({ ok: true, reason: "judge error" })))
+                .pipe(
+                  Effect.catchCause((cause) =>
+                    Effect.gen(function* () {
+                      yield* Effect.logWarning("goal judge failed; allowing stop", {
+                        error: String(Cause.squash(cause)),
+                      })
+                      return { ok: true, reason: "judge error", error: true } as SessionGoal.Verdict
+                    }),
+                  ),
+                )
               const reactCount = yield* goal.bumpReact(sessionID)
               if (verdict.ok || verdict.impossible || reactCount > SessionGoal.MAX_GOAL_REACT) {
                 yield* events.publish(SessionGoal.Event.Updated, {
@@ -1401,18 +1410,23 @@ export const layer = Layer.effect(
                 goal: { condition: activeGoal.condition },
                 lastVerdict: { ...verdict, attempt: reactCount, messageID: handle.message.id },
               })
-              const userMsg = msgs.findLast((m) => m.info.role === "user" && m.info.id === lastUser.id)
-              if (userMsg) {
-                const part = yield* sessions.updatePart({
-                  id: PartID.ascending(),
-                  messageID: lastUser.id,
-                  sessionID,
-                  type: "text",
-                  text: `Goal not yet satisfied: ${verdict.reason}\n\nContinue working toward: ${activeGoal.condition}`,
-                  synthetic: true,
-                } satisfies SessionV1.TextPart)
-                userMsg.parts.push(part)
+              const syntheticMsg: SessionV1.User = {
+                id: MessageID.ascending(),
+                sessionID,
+                role: "user",
+                time: { created: Date.now() },
+                agent: lastUser.agent,
+                model: lastUser.model,
               }
+              yield* sessions.updateMessage(syntheticMsg)
+              yield* sessions.updatePart({
+                id: PartID.ascending(),
+                messageID: syntheticMsg.id,
+                sessionID,
+                type: "text",
+                text: `Goal not yet satisfied: ${verdict.reason}\n\nContinue working toward: ${activeGoal.condition}`,
+                synthetic: true,
+              } satisfies SessionV1.TextPart)
               continue
             }
             break
