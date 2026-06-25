@@ -13,8 +13,7 @@ const mockProviderLayer = Layer.mock(Provider.Service, {
   getLanguage: () => Effect.die(new Error("not implemented")),
   getModel: () => Effect.die(new Error("not implemented")),
   getSmallModel: () => Effect.die(new Error("not implemented")),
-  list: () => Effect.succeed([]),
-  parseModel: () => Effect.die(new Error("not implemented")),
+  list: () => Effect.succeed({}),
 })
 
 const mockAuthLayer = Layer.mock(Auth.Service, {
